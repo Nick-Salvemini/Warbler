@@ -317,7 +317,8 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-
+    print('******************************************************',g.user)
+    print('******************************************************',User.query.get(g.user.id).is_following)
     if g.user:
         messages = (Message
                     .query
