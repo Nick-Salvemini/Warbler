@@ -18,7 +18,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
 toolbar = DebugToolbarExtension(app)
 
@@ -112,8 +112,10 @@ def login():
 @app.route('/logout')
 def logout():
     """Handle logout of user."""
-
-    # IMPLEMENT THIS
+    user = User.query.get(session[CURR_USER_KEY])
+    do_logout()
+    flash(f"{user.username} has logged out.", "success")
+    return redirect("/")
 
 
 ##############################################################################
@@ -162,6 +164,12 @@ def show_following(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
+
+# **************************************
+    # import pdb
+    # pdb.set_trace()
+# **************************************
+
     return render_template('users/following.html', user=user)
 
 
@@ -207,11 +215,17 @@ def stop_following(follow_id):
     return redirect(f"/users/{g.user.id}/following")
 
 
-@app.route('/users/profile', methods=["GET", "POST"])
-def profile():
+@app.route('/users/profile/<int:user_id>', methods=["GET", "POST"])
+def profile(user_id):
     """Update profile for current user."""
 
-    # IMPLEMENT THIS
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get_or_404(user_id)
+    form = UserAddForm()
+    return render_template('users/edit.html', user=user, form=form)
 
 
 @app.route('/users/delete', methods=["POST"])
