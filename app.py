@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
-from forms import UserAddForm, LoginForm, MessageForm
+from forms import UserForm, LoginForm, MessageForm
 from models import db, connect_db, User, Message
 
 CURR_USER_KEY = "curr_user"
@@ -65,7 +65,7 @@ def signup():
     and re-present form.
     """
 
-    form = UserAddForm()
+    form = UserForm()
 
     if form.validate_on_submit():
         try:
@@ -224,7 +224,20 @@ def profile(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    form = UserAddForm()
+    form = UserForm(obj=user)
+
+    if form.validate_on_submit():
+        user = User.authenticate(form.username.data,
+                                 form.password.data)
+        if user:
+            user.username = form.username.data
+            user.email = form.email.data
+            user.image_url = form.image_url.data
+            user.header_image_url = form.header_image_url.data
+            user.bio = form.bio.data
+            db.session.commit()
+            flash(f'{user.id} has been updated')
+            return redirect(f'/users/{user.id}')
     return render_template('users/edit.html', user=user, form=form)
 
 

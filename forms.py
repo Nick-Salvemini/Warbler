@@ -9,13 +9,16 @@ class MessageForm(FlaskForm):
     text = TextAreaField('text', validators=[DataRequired()])
 
 
-class UserAddForm(FlaskForm):
+class UserForm(FlaskForm):
     """Form for adding users."""
 
     username = StringField('Username', validators=[DataRequired()])
     email = StringField('E-mail', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[Length(min=6)])
+    location = StringField('(Optional) Location')
     image_url = StringField('(Optional) Image URL')
+    header_image_url = StringField('(Optional) Header Image URL')
+    bio = TextAreaField('(Optional) Bio')
 
 class LoginForm(FlaskForm):
     """Login form."""
