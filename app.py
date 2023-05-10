@@ -319,21 +319,13 @@ def add_like(message_id):
 
     if like:
         remove_like = Likes.query.get(like.id)
-        # print('*****************************************************', 'removed', remove_like)
         db.session.delete(remove_like)
         db.session.commit()
-        # print('*****************************************************', 'removed', remove_like)
-
         
     else:
         new_like = Likes(message_id=msg.id, user_id=g.user.id)
         db.session.add(new_like)
         db.session.commit()
-        # print('*****************************************************', new_like.id, 'added')
-    
-    # print('*****************************************************',msg.id, g.user.id, like.id)
-
-    # print('*****************************************************', new_like)
 
     return redirect('/')
 
@@ -358,14 +350,9 @@ def homepage():
                     .limit(100)
                     .all())
         
-        message_ids = [msg.id for msg in messages]
+        liked_msg_ids = [msg.id for msg in g.user.likes]
         
-        # liked_messages = Likes.query.filter(Likes.message_id.in_(message_ids)).all()
-        liked_messages = Message.query.filter(Likes.message_id.in_(message_ids), Likes.user_id == g.user.id).all()
-
-        print('************************', message_ids, 'XXXXXXXXXXXXXXX', liked_messages, '1111111111111111111111111111111', messages)
-
-        return render_template('home.html', messages=messages, liked_messages=liked_messages)
+        return render_template('home.html', messages=messages, liked_msg_ids=liked_msg_ids)
 
     else:
         return render_template('home-anon.html')

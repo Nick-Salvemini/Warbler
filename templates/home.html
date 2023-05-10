@@ -47,8 +47,8 @@
         <div class="message-area">
           <a href="/users/{{ msg.user.id }}">@{{ msg.user.username }}</a>
           <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
-          {% if msg in liked_messages %}
-          <i class="bi bi-heart"></i>
+          {% if msg.id in liked_msg_ids %}
+          <i class="bi bi-heart" style="font-style:normal">&#128155;</i>
           {% endif %}
           <p>{{ msg.text }}</p>
         </div>
