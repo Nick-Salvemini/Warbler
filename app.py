@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
 from forms import UserForm, LoginForm, MessageForm
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, Likes
 
 CURR_USER_KEY = "curr_user"
 
@@ -305,6 +305,37 @@ def messages_destroy(message_id):
 
     return redirect(f"/users/{g.user.id}")
 
+@app.route('/users/add_like/<int:message_id>', methods=["POST"])
+def add_like(message_id):
+    """Add a like to a message"""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+    
+    msg = Message.query.get_or_404(message_id)
+
+    like = Likes.query.filter(Likes.message_id == msg.id, Likes.user_id == g.user.id).first()
+
+    if like:
+        remove_like = Likes.query.get(like.id)
+        # print('*****************************************************', 'removed', remove_like)
+        db.session.delete(remove_like)
+        db.session.commit()
+        # print('*****************************************************', 'removed', remove_like)
+
+        
+    else:
+        new_like = Likes(message_id=msg.id, user_id=g.user.id)
+        db.session.add(new_like)
+        db.session.commit()
+        # print('*****************************************************', new_like.id, 'added')
+    
+    # print('*****************************************************',msg.id, g.user.id, like.id)
+
+    # print('*****************************************************', new_like)
+
+    return redirect('/')
 
 ##############################################################################
 # Homepage and error pages
@@ -326,8 +357,15 @@ def homepage():
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
+        
+        message_ids = [msg.id for msg in messages]
+        
+        # liked_messages = Likes.query.filter(Likes.message_id.in_(message_ids)).all()
+        liked_messages = Message.query.filter(Likes.message_id.in_(message_ids), Likes.user_id == g.user.id).all()
 
-        return render_template('home.html', messages=messages)
+        print('************************', message_ids, 'XXXXXXXXXXXXXXX', liked_messages, '1111111111111111111111111111111', messages)
+
+        return render_template('home.html', messages=messages, liked_messages=liked_messages)
 
     else:
         return render_template('home-anon.html')
