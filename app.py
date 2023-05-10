@@ -152,6 +152,9 @@ def users_show(user_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
+    
+    print(messages)
+    
     return render_template('users/show.html', user=user, messages=messages)
 
 
@@ -164,11 +167,6 @@ def show_following(user_id):
         return redirect("/")
 
     user = User.query.get_or_404(user_id)
-
-# **************************************
-    # import pdb
-    # pdb.set_trace()
-# **************************************
 
     return render_template('users/following.html', user=user)
 
@@ -184,6 +182,27 @@ def users_followers(user_id):
     user = User.query.get_or_404(user_id)
     return render_template('users/followers.html', user=user)
 
+@app.route('/users/<int:user_id>/likes')
+def users_liked_messages(user_id):
+    """Show list of liked messages from this user."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+    
+    user = User.query.get_or_404(user_id)
+
+    user_likes = user.likes
+
+    messages = (Message
+                .query
+                .filter(Message.id.in_(l.id for l in user_likes))
+                .order_by(Message.timestamp.desc())
+                .limit(100)
+                .all())
+
+    print('****************************', messages)
+    return render_template('users/likes.html', user=user, messages=messages)
 
 @app.route('/users/follow/<int:follow_id>', methods=['POST'])
 def add_follow(follow_id):
