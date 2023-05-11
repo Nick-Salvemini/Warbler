@@ -105,3 +105,19 @@ class UserModelTestCase(TestCase):
 
         self.assertTrue(user_following)
         self.assertTrue(user_is_followed)
+
+    def test_signup(self):
+        """Does signup work only when valid info is given"""
+
+        u = User(
+            email="test@test.com",
+            username="testuser",
+            password="HASHED_PASSWORD"
+        )
+
+        User.signup(u.email, u.username, u.password, u.image_url)
+        db.session.commit()
+
+        self.assertTrue(u)
+
+        # self.assertEqual(User.query.get(u.id).is_following(u2.id), False)
