@@ -5,6 +5,7 @@
 #    python -m unittest test_user_model.py
 
 
+from app import app
 import os
 from unittest import TestCase
 
@@ -20,7 +21,6 @@ os.environ['DATABASE_URL'] = "postgresql:///warbler-test"
 
 # Now we can import app
 
-from app import app
 
 # Create our tables (we do this here, so we only create the tables
 # once for all tests --- in each test, we'll delete the data
@@ -56,3 +56,42 @@ class UserModelTestCase(TestCase):
         # User should have no messages & no followers
         self.assertEqual(len(u.messages), 0)
         self.assertEqual(len(u.followers), 0)
+
+    def test_user_repr(self):
+        """Does the repr for the user model work?"""
+
+        u = User(
+            email="test@test.com",
+            username="testuser",
+            password="HASHED_PASSWORD"
+        )
+
+        db.session.add(u)
+        db.session.commit()
+
+        user_repr = repr(u)
+
+        self.assertEqual(user_repr, f"<User #{u.id}: testuser, test@test.com>")
+
+    def test_is_following(self):
+        """Does is_following properly track if a user is following another user"""
+
+        u = User(
+            email="test@test.com",
+            username="testuser",
+            password="HASHED_PASSWORD"
+        )
+
+        u2 = User(
+            email="test2@test.com",
+            username="testuser2",
+            password="HASHED_PASSWORD"
+        )
+
+        db.session.add(u)
+        db.session.add(u2)
+        db.session.commit()
+
+        print(u.id, u2.id)
+
+        self.assertEqual(User.query.get(u.id).is_follwing(u2.id), False)
