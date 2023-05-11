@@ -124,11 +124,41 @@ class UserModelTestCase(TestCase):
         )
 
         User.signup(u.email, u.username, u.password, u.image_url)
-        print(u)
+        print('*******', u.id)
         db.session.commit()
 
-        User.signup(u2.email, u2.username, u2.password)
-        print(u2)
+        self.assertTrue(u)
+
+        with self.assertRaises(TypeError) as context:
+            User.signup(u2.email, u2.username, u2.password)
+
+        with self.assertRaises(TypeError) as context:
+            User.signup(u2.email, u2.username, u.image_url)
+
+        with self.assertRaises(TypeError) as context:
+            User.signup(u2.email, u2.password, u.image_url)
+
+        with self.assertRaises(TypeError) as context:
+            User.signup(u2.username, u2.password, u.image_url)
+
+        with self.assertRaises(TypeError) as context:
+            User.signup(u2.email, u2.username)
+
+    def test_authenticate(self):
+        """Does authenticate work only when valid credentials are given"""
+
+        u = User(
+            email="test@test.com",
+            username="testuser",
+            password="HASHED_PASSWORD"
+        )
+
+        User.signup(u.email, u.username, u.password, u.image_url)
+
         db.session.commit()
 
-        self.assertTrue(u2)
+        print('*******', u.id)
+
+        auth = User.authenticate(u.username, u.password)
+
+        self.assertEqual(auth, u)
