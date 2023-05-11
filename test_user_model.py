@@ -124,7 +124,6 @@ class UserModelTestCase(TestCase):
         )
 
         User.signup(u.email, u.username, u.password, u.image_url)
-        print('*******', u.id)
         db.session.commit()
 
         self.assertTrue(u)
@@ -153,12 +152,17 @@ class UserModelTestCase(TestCase):
             password="HASHED_PASSWORD"
         )
 
-        User.signup(u.email, u.username, u.password, u.image_url)
+        db.session.add(u)
+        db.session.commit()
+
+        signed_up_user = User.signup(
+            u.email, u.username, u.password, u.image_url)
 
         db.session.commit()
 
-        print('*******', u.id)
+        print('*******', signed_up_user.id, signed_up_user.password)
 
-        auth = User.authenticate(u.username, u.password)
+        auth = User.authenticate(
+            signed_up_user.username, signed_up_user.password)
 
         self.assertEqual(auth, u)
