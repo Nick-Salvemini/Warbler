@@ -73,7 +73,7 @@ def signup():
                 username=form.username.data,
                 password=form.password.data,
                 email=form.email.data,
-                image_url=form.image_url.data or User.image_url.default.arg,
+                image_url=form.image_url.data or User.image_url.default.arg
             )
             db.session.commit()
 
@@ -152,9 +152,9 @@ def users_show(user_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
-    
+
     print(messages)
-    
+
     return render_template('users/show.html', user=user, messages=messages)
 
 
@@ -182,6 +182,7 @@ def users_followers(user_id):
     user = User.query.get_or_404(user_id)
     return render_template('users/followers.html', user=user)
 
+
 @app.route('/users/<int:user_id>/likes')
 def users_liked_messages(user_id):
     """Show list of liked messages from this user."""
@@ -189,7 +190,7 @@ def users_liked_messages(user_id):
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-    
+
     user = User.query.get_or_404(user_id)
 
     user_likes = user.likes
@@ -203,6 +204,7 @@ def users_liked_messages(user_id):
 
     print('****************************', messages)
     return render_template('users/likes.html', user=user, messages=messages)
+
 
 @app.route('/users/follow/<int:follow_id>', methods=['POST'])
 def add_follow(follow_id):
@@ -324,6 +326,7 @@ def messages_destroy(message_id):
 
     return redirect(f"/users/{g.user.id}")
 
+
 @app.route('/users/add_like/<int:message_id>', methods=["POST"])
 def add_like(message_id):
     """Add a like to a message"""
@@ -331,16 +334,17 @@ def add_like(message_id):
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
-    
+
     msg = Message.query.get_or_404(message_id)
 
-    like = Likes.query.filter(Likes.message_id == msg.id, Likes.user_id == g.user.id).first()
+    like = Likes.query.filter(
+        Likes.message_id == msg.id, Likes.user_id == g.user.id).first()
 
     if like:
         remove_like = Likes.query.get(like.id)
         db.session.delete(remove_like)
         db.session.commit()
-        
+
     else:
         new_like = Likes(message_id=msg.id, user_id=g.user.id)
         db.session.add(new_like)
@@ -361,16 +365,16 @@ def homepage():
     """
     if g.user:
         following_ids = [f.id for f in g.user.following] + [g.user.id]
-        
+
         messages = (Message
                     .query
                     .filter(Message.user_id.in_(following_ids))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
-        
+
         liked_msg_ids = [msg.id for msg in g.user.likes]
-        
+
         return render_template('home.html', messages=messages, liked_msg_ids=liked_msg_ids)
 
     else:

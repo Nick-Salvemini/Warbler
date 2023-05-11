@@ -73,8 +73,8 @@ class UserModelTestCase(TestCase):
 
         self.assertEqual(user_repr, f"<User #{u.id}: testuser, test@test.com>")
 
-    def test_is_following(self):
-        """Does is_following properly track if a user is following another user"""
+    def test_is_following_and_followed_by(self):
+        """Does is_following and is_followed_by properly track if a user is following another user"""
 
         u = User(
             email="test@test.com",
@@ -92,6 +92,16 @@ class UserModelTestCase(TestCase):
         db.session.add(u2)
         db.session.commit()
 
-        print(u.id, u2.id)
+        self.assertFalse(User.query.get(u.id).is_following(u2.id))
+        self.assertFalse(User.query.get(u2.id).is_followed_by(u.id))
 
-        self.assertEqual(User.query.get(u.id).is_follwing(u2.id), False)
+        f = Follows(user_being_followed_id=u2.id, user_following_id=u.id)
+
+        db.session.add(f)
+        db.session.commit()
+
+        user_following = u.is_following(u2)
+        user_is_followed = u2.is_followed_by(u)
+
+        self.assertTrue(user_following)
+        self.assertTrue(user_is_followed)
