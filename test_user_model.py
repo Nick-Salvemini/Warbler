@@ -2,7 +2,7 @@
 
 # run these tests like:
 #
-#    python -m unittest test_user_model.py
+#    python3 -m unittest test_user_model.py
 
 
 from app import app
@@ -17,7 +17,6 @@ from models import db, User, Message, Follows
 # connected to the database
 
 os.environ['DATABASE_URL'] = "postgresql:///warbler-test"
-
 
 # Now we can import app
 
@@ -34,12 +33,15 @@ class UserModelTestCase(TestCase):
 
     def setUp(self):
         """Create test client, add sample data."""
-
-        User.query.delete()
-        Message.query.delete()
-        Follows.query.delete()
+        db.drop_all()
+        db.create_all()
 
         self.client = app.test_client()
+
+    def tearDown(self):
+        res = super().tearDown()
+        db.session.rollback()
+        return res
 
     def test_user_model(self):
         """Does basic model work?"""
@@ -115,9 +117,18 @@ class UserModelTestCase(TestCase):
             password="HASHED_PASSWORD"
         )
 
+        u2 = User(
+            email="test2@test.com",
+            username="test2user",
+            password="HASHED_PASSWORD"
+        )
+
         User.signup(u.email, u.username, u.password, u.image_url)
+        print(u)
         db.session.commit()
 
-        self.assertTrue(u)
+        User.signup(u2.email, u2.username, u2.password)
+        print(u2)
+        db.session.commit()
 
-        # self.assertEqual(User.query.get(u.id).is_following(u2.id), False)
+        self.assertTrue(u2)
