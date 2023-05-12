@@ -2,13 +2,14 @@
 
 # run these tests like:
 #
-#    FLASK_ENV=production python -m unittest test_message_views.py
+#    FLASK_ENV=production python3 -m unittest test_message_views.py
 
 
+from app import app, CURR_USER_KEY
 import os
 from unittest import TestCase
 
-from models import db, connect_db, Message, User
+from models import db, connect_db, Message, User, Likes
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -20,7 +21,6 @@ os.environ['DATABASE_URL'] = "postgresql:///warbler-test"
 
 # Now we can import app
 
-from app import app, CURR_USER_KEY
 
 # Create our tables (we do this here, so we only create the tables
 # once for all tests --- in each test, we'll delete the data
@@ -71,3 +71,57 @@ class MessageViewTestCase(TestCase):
 
             msg = Message.query.one()
             self.assertEqual(msg.text, "Hello")
+
+    def test_show_message(self):
+        """Do messages show properly?"""
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+
+            m = Message(text='Test message', user_id=self.testuser.id)
+            db.session.add(m)
+            db.session.commit()
+
+            resp = c.get(f"/messages/{m.id}")
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn(m.text, resp.get_data(as_text=True))
+
+    def test_delete_message(self):
+        """Are messages properly delete?"""
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+
+            m = Message(text='Test message', user_id=self.testuser.id)
+            db.session.add(m)
+            db.session.commit()
+
+            resp = c.post(f'/messages/{m.id}/delete')
+
+            self.assertEqual(resp.status_code, 302)
+
+            msg = Message.query.get(m.id)
+
+            self.assertFalse(msg)
+
+    def test_like_and_unlike_message(self):
+        """Are messages liked and unliked?"""
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+
+            m = Message(text='Test message', user_id=self.testuser.id)
+            db.session.add(m)
+            db.session.commit()
+
+            resp = c.post(f'/users/add_like/{m.id}')
+
+            q = Likes.query.filter(Likes.message_id == m.id).first()
+            print('****', self.testuser.likes)
+
+            self.assertEqual(resp.status_code, 302)
+            self.assertEqual(self.testuser.id, q.user_id)
