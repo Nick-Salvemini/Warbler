@@ -121,7 +121,13 @@ class MessageViewTestCase(TestCase):
             resp = c.post(f'/users/add_like/{m.id}')
 
             q = Likes.query.filter(Likes.message_id == m.id).first()
-            print('****', self.testuser.likes)
 
             self.assertEqual(resp.status_code, 302)
             self.assertEqual(self.testuser.id, q.user_id)
+
+            resp2 = c.post(f'/users/add_like/{m.id}')
+
+            q2 = Likes.query.filter(Likes.message_id == m.id).first()
+
+            self.assertEqual(resp2.status_code, 302)
+            self.assertFalse(q2)
