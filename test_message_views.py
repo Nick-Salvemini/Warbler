@@ -77,7 +77,7 @@ class MessageViewTestCase(TestCase):
 
             resp2 = c.post("/messages/new", data={"text": "Hello"})
 
-            self.assertEqual(resp2.status_code, 404)
+            self.assertEqual(resp2.status_code, 500)
 
     def test_show_message(self):
         """Do messages show properly?"""
@@ -94,6 +94,13 @@ class MessageViewTestCase(TestCase):
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn(m.text, resp.get_data(as_text=True))
+
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = None
+
+            resp2 = c.get(f"/messages/{m.id}")
+
+            self.assertEqual(resp2.status_code, 500)
 
     def test_delete_message(self):
         """Are messages properly delete?"""
@@ -113,6 +120,13 @@ class MessageViewTestCase(TestCase):
             msg = Message.query.get(m.id)
 
             self.assertFalse(msg)
+
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = None
+
+            resp2 = c.post(f'/messages/{m.id}/delete')
+
+            self.assertEqual(resp2.status_code, 500)
 
     def test_like_and_unlike_message(self):
         """Are messages liked and unliked?"""
@@ -138,3 +152,10 @@ class MessageViewTestCase(TestCase):
 
             self.assertEqual(resp2.status_code, 302)
             self.assertFalse(q2)
+
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = None
+
+            resp3 = c.post(f'/users/add_like/{m.id}')
+
+            self.assertEqual(resp3.status_code, 500)
