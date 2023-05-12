@@ -8,6 +8,7 @@
 from app import app, CURR_USER_KEY
 import os
 from unittest import TestCase
+from flask import Flask
 
 from models import db, connect_db, Message, User
 
@@ -42,6 +43,7 @@ class UserViewTestCase(TestCase):
         User.query.delete()
         Message.query.delete()
 
+        app.testing = True
         self.client = app.test_client()
 
         self.testuser = User.signup(username="testuser",
@@ -51,6 +53,10 @@ class UserViewTestCase(TestCase):
 
         db.session.commit()
 
+    def tearDown(self):
+        db.session.rollback()
+        app.testing = False
+
     def test_list_users(self):
         """"Does list users work?"""
 
@@ -58,15 +64,13 @@ class UserViewTestCase(TestCase):
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
 
-            resp = c.get('/users')
-            self.assertEqual(resp.status_code, 200)
-
             with app.app_context():
-                context = self.client.get_context('/')
-                route_users = context['users']
+                route_users = flask.current_app.template_context['users']
 
+            resp = c.get('/users')
             users = User.query.all()
 
+            self.assertEqual(resp.status_code, 200)
             self.assertEqual(users, route_users)
 
     def test_show_users(self):
