@@ -72,6 +72,13 @@ class MessageViewTestCase(TestCase):
             msg = Message.query.one()
             self.assertEqual(msg.text, "Hello")
 
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = None
+
+            resp2 = c.post("/messages/new", data={"text": "Hello"})
+
+            self.assertEqual(resp2.status_code, 404)
+
     def test_show_message(self):
         """Do messages show properly?"""
 
