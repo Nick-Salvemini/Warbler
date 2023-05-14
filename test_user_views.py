@@ -8,9 +8,10 @@
 from app import app, CURR_USER_KEY
 import os
 from unittest import TestCase
-from flask import Flask
+from flask import Flask, current_app
 
 from models import db, connect_db, Message, User
+
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -43,7 +44,7 @@ class UserViewTestCase(TestCase):
         User.query.delete()
         Message.query.delete()
 
-        app.testing = True
+        # app.testing = True
         self.client = app.test_client()
 
         self.testuser = User.signup(username="testuser",
@@ -55,7 +56,7 @@ class UserViewTestCase(TestCase):
 
     def tearDown(self):
         db.session.rollback()
-        app.testing = False
+        # app.testing = False
 
     def test_list_users(self):
         """"Does list users work?"""
@@ -65,13 +66,15 @@ class UserViewTestCase(TestCase):
                 sess[CURR_USER_KEY] = self.testuser.id
 
             with app.app_context():
-                route_users = flask.current_app.template_context['users']
+                route_users = current_app.template_context['users']
 
-            resp = c.get('/users')
-            users = User.query.all()
+        resp = c.get('/users')
+        # route_users = resp.context['users']
 
-            self.assertEqual(resp.status_code, 200)
-            self.assertEqual(users, route_users)
+        users = User.query.all()
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(users, route_users)
 
     def test_show_users(self):
         """Does the route show the individual user"""
@@ -80,9 +83,9 @@ class UserViewTestCase(TestCase):
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
 
-            resp = c.get(f'/users/{self.testuser.id}')
+        resp = c.get(f'/users/{self.testuser.id}')
 
-            self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_show_following(self):
         """Does the route show who the user is following"""
@@ -91,9 +94,9 @@ class UserViewTestCase(TestCase):
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
 
-            resp = c.get(f'/users/{self.testuser.id}/following')
+        resp = c.get(f'/users/{self.testuser.id}/following')
 
-            self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_users_followers(self):
         """Does the route show the followers of the user"""
@@ -102,9 +105,9 @@ class UserViewTestCase(TestCase):
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
 
-            resp = c.get(f'/users/{self.testuser.id}/followers')
+        resp = c.get(f'/users/{self.testuser.id}/followers')
 
-            self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     def test_users_liked_messages(self):
         """Does the route show users liked messages"""
@@ -113,9 +116,9 @@ class UserViewTestCase(TestCase):
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
 
-            resp = c.get(f'/users/{self.testuser.id}/likes')
+        resp = c.get(f'/users/{self.testuser.id}/likes')
 
-            self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.status_code, 200)
 
     # def test_add_follow(self):
     #     """Does the route add a new follow to the current user"""
@@ -124,9 +127,9 @@ class UserViewTestCase(TestCase):
     #         with c.session_transaction() as sess:
     #             sess[CURR_USER_KEY] = self.testuser.id
 
-    #         resp = c.get(f'/users/follow/{self.testuser.id}')
+    #        resp = c.get(f'/users/follow/{self.testuser.id}')
 
-    #         self.assertEqual(resp.status_code, 200)
+    #        self.assertEqual(resp.status_code, 200)
 
     # def test_stop_following(self):
 
