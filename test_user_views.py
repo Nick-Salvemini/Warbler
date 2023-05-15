@@ -65,16 +65,14 @@ class UserViewTestCase(TestCase):
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
 
-            with app.app_context():
-                route_users = current_app.template_context['users']
+
+
 
         resp = c.get('/users')
-        # route_users = resp.context['users']
 
-        users = User.query.all()
-
+        html = resp.get_data(as_text=True)
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(users, route_users)
+        self.assertIn("@testuser", str(resp.data))
 
     def test_show_users(self):
         """Does the route show the individual user"""
