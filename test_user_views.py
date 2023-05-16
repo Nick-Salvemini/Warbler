@@ -57,11 +57,11 @@ class UserViewTestCase(TestCase):
                                      password="test2user",
                                      image_url=None)
 
-        self.follow = Follows(user_being_followed_id=self.testuser2,
-                              user_following_id=self.testuser)
+        self.follow = Follows(user_being_followed_id=self.testuser2.id,
+                              user_following_id=self.testuser.id)
 
-        self.follow2 = Follows(user_being_followed_id=self.testuser,
-                               user_following_id=self.testuser2)
+        self.follow2 = Follows(user_being_followed_id=self.testuser.id,
+                               user_following_id=self.testuser2.id)
 
         db.session.add(self.follow, self.follow2)
         db.session.commit()
