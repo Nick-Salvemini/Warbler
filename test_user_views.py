@@ -10,7 +10,7 @@ import os
 from unittest import TestCase
 from flask import Flask, current_app
 
-from models import db, connect_db, Message, User
+from models import db, connect_db, Message, User, Follows
 
 
 # BEFORE we import our app, let's set an environmental variable
@@ -52,6 +52,18 @@ class UserViewTestCase(TestCase):
                                     password="testuser",
                                     image_url=None)
 
+        self.testuser2 = User.signup(username="testuser2",
+                                     email="test2@test.com",
+                                     password="test2user",
+                                     image_url=None)
+
+        self.follow = Follows(user_being_followed_id=self.testuser2,
+                              user_following_id=self.testuser)
+
+        self.follow2 = Follows(user_being_followed_id=self.testuser,
+                               user_following_id=self.testuser2)
+
+        db.session.add(self.follow, self.follow2)
         db.session.commit()
 
     def tearDown(self):
@@ -65,12 +77,8 @@ class UserViewTestCase(TestCase):
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
 
-
-
-
         resp = c.get('/users')
 
-        html = resp.get_data(as_text=True)
         self.assertEqual(resp.status_code, 200)
         self.assertIn("@testuser", str(resp.data))
 
@@ -84,6 +92,7 @@ class UserViewTestCase(TestCase):
         resp = c.get(f'/users/{self.testuser.id}')
 
         self.assertEqual(resp.status_code, 200)
+        self.assertIn("@testuser", str(resp.data))
 
     def test_show_following(self):
         """Does the route show who the user is following"""
@@ -94,7 +103,34 @@ class UserViewTestCase(TestCase):
 
         resp = c.get(f'/users/{self.testuser.id}/following')
 
+        print('******', self.testuser)
+        # print('xxxxxxx', self.testuser2)
+
+        # follow = self.testuser.is_following(self.testuser2)
+
+        # db.session.add(follow)
+        # db.session.commit()
+
+        # testuser2 = User.signup(username="testuser2",
+        #                         email="test2@test.com",
+        #                         password="test2user",
+        #                         image_url=None)
+
+        # db.session.commit()
+
+        # follow = Follows(user_being_followed_id=testuser2,
+        #                  user_following_id=self.testuser)
+
+        # db.session.add(follow)
+        # db.session.commit()
+
+        # follow = self.testuser.is_following(testuser2)
+
+        print('*******', self.testuser.following)
+
         self.assertEqual(resp.status_code, 200)
+        self.assertIn("@testuser", str(resp.data))
+        # self.assertIn("@test2user", str(resp.data))
 
     def test_users_followers(self):
         """Does the route show the followers of the user"""
