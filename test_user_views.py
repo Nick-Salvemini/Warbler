@@ -65,16 +65,16 @@ class UserViewTestCase(TestCase):
         db.session.add(self.follow)
         db.session.commit()
 
-        # self.message = Message(text='Test Message',
-        #                        user_id=self.testuser2.id)
+        self.message = Message(text='Test Message',
+                               user_id=self.testuser2.id)
 
-        # db.session.add(self.message)
-        # db.session.commit()
+        db.session.add(self.message)
+        db.session.commit()
 
-        # self.like = Likes(user_id=self.testuser.id,
-        #                   message_id=self.message.id)
-        # db.session.add(self.like)
-        # db.session.commit()
+        self.like = Likes(user_id=self.testuser.id,
+                          message_id=self.message.id)
+        db.session.add(self.like)
+        db.session.commit()
 
     def tearDown(self):
         db.session.rollback()
@@ -150,10 +150,14 @@ class UserViewTestCase(TestCase):
         # db.session.add(like)
         # db.session.commit()
 
+        msg = self.message
+
+        # print('xxx', dir(msg))
+
         self.assertEqual(resp.status_code, 200)
         self.assertIn("@testuser", str(resp.data))
         self.assertIn("@testuser2", str(resp.data))
-        # self.assertIn(msg.timestamp, str(resp.data))
+        self.assertIn(str(msg.timestamp), str(resp.data))
 
     # def test_add_follow(self):
     #     """Does the route add a new follow to the current user"""
