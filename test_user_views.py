@@ -57,6 +57,8 @@ class UserViewTestCase(TestCase):
                                      password="test2user",
                                      image_url=None)
 
+        db.session.commit()
+
         self.follow = Follows(user_being_followed_id=self.testuser2.id,
                               user_following_id=self.testuser.id)
 
