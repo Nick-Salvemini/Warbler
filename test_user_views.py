@@ -10,7 +10,7 @@ import os
 from unittest import TestCase
 from flask import Flask, current_app
 
-from models import db, connect_db, Message, User, Follows
+from models import db, connect_db, Message, User, Follows, Likes
 
 
 # BEFORE we import our app, let's set an environmental variable
@@ -62,11 +62,19 @@ class UserViewTestCase(TestCase):
         self.follow = Follows(user_being_followed_id=self.testuser2.id,
                               user_following_id=self.testuser.id)
 
-        self.follow2 = Follows(user_being_followed_id=self.testuser.id,
-                               user_following_id=self.testuser2.id)
-
-        db.session.add(self.follow, self.follow2)
+        db.session.add(self.follow)
         db.session.commit()
+
+        # self.message = Message(text='Test Message',
+        #                        user_id=self.testuser2.id)
+
+        # db.session.add(self.message)
+        # db.session.commit()
+
+        # self.like = Likes(user_id=self.testuser.id,
+        #                   message_id=self.message.id)
+        # db.session.add(self.like)
+        # db.session.commit()
 
     def tearDown(self):
         db.session.rollback()
@@ -105,45 +113,22 @@ class UserViewTestCase(TestCase):
 
         resp = c.get(f'/users/{self.testuser.id}/following')
 
-        print('******', self.testuser)
-        # print('xxxxxxx', self.testuser2)
-
-        # follow = self.testuser.is_following(self.testuser2)
-
-        # db.session.add(follow)
-        # db.session.commit()
-
-        # testuser2 = User.signup(username="testuser2",
-        #                         email="test2@test.com",
-        #                         password="test2user",
-        #                         image_url=None)
-
-        # db.session.commit()
-
-        # follow = Follows(user_being_followed_id=testuser2,
-        #                  user_following_id=self.testuser)
-
-        # db.session.add(follow)
-        # db.session.commit()
-
-        # follow = self.testuser.is_following(testuser2)
-
-        print('*******', self.testuser.following)
-
         self.assertEqual(resp.status_code, 200)
         self.assertIn("@testuser", str(resp.data))
-        # self.assertIn("@test2user", str(resp.data))
+        self.assertIn("@testuser2", str(resp.data))
 
     def test_users_followers(self):
         """Does the route show the followers of the user"""
 
         with self.client as c:
             with c.session_transaction() as sess:
-                sess[CURR_USER_KEY] = self.testuser.id
+                sess[CURR_USER_KEY] = self.testuser2.id
 
-        resp = c.get(f'/users/{self.testuser.id}/followers')
+        resp = c.get(f'/users/{self.testuser2.id}/followers')
 
         self.assertEqual(resp.status_code, 200)
+        self.assertIn("@testuser2", str(resp.data))
+        self.assertIn("@testuser", str(resp.data))
 
     def test_users_liked_messages(self):
         """Does the route show users liked messages"""
@@ -154,7 +139,21 @@ class UserViewTestCase(TestCase):
 
         resp = c.get(f'/users/{self.testuser.id}/likes')
 
+        # message = Message(text='Test Message',
+        #                        user_id=self.testuser2.id)
+
+        # db.session.add(message)
+        # db.session.commit()
+
+        # like = Likes(user_id=self.testuser.id,
+        #              message_id=self.message.id)
+        # db.session.add(like)
+        # db.session.commit()
+
         self.assertEqual(resp.status_code, 200)
+        self.assertIn("@testuser", str(resp.data))
+        self.assertIn("@testuser2", str(resp.data))
+        # self.assertIn(msg.timestamp, str(resp.data))
 
     # def test_add_follow(self):
     #     """Does the route add a new follow to the current user"""
