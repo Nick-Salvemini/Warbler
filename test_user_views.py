@@ -57,6 +57,11 @@ class UserViewTestCase(TestCase):
                                      password="test2user",
                                      image_url=None)
 
+        self.testuser3 = User.signup(username="testuser3",
+                                     email="test3@test.com",
+                                     password="test3user",
+                                     image_url=None)
+
         db.session.commit()
 
         self.follow = Follows(user_being_followed_id=self.testuser2.id,
@@ -136,39 +141,33 @@ class UserViewTestCase(TestCase):
         with self.client as c:
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.testuser.id
+                msg_text = self.message.text
 
         resp = c.get(f'/users/{self.testuser.id}/likes')
-
-        # message = Message(text='Test Message',
-        #                        user_id=self.testuser2.id)
-
-        # db.session.add(message)
-        # db.session.commit()
-
-        # like = Likes(user_id=self.testuser.id,
-        #              message_id=self.message.id)
-        # db.session.add(like)
-        # db.session.commit()
-
-        msg = self.message
-
-        # print('xxx', dir(msg))
 
         self.assertEqual(resp.status_code, 200)
         self.assertIn("@testuser", str(resp.data))
         self.assertIn("@testuser2", str(resp.data))
-        self.assertIn(str(msg.timestamp), str(resp.data))
+        self.assertIn(str(msg_text), str(resp.data))
 
-    # def test_add_follow(self):
-    #     """Does the route add a new follow to the current user"""
+    def test_add_follow(self):
+        """Does the route add a new follow to the current user"""
 
-    #     with self.client as c:
-    #         with c.session_transaction() as sess:
-    #             sess[CURR_USER_KEY] = self.testuser.id
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.testuser.id
+                testuser3_id = self.testuser3.id
 
-    #        resp = c.get(f'/users/follow/{self.testuser.id}')
+        resp = c.post(f'/users/follow/{testuser3_id}')
 
-    #        self.assertEqual(resp.status_code, 200)
+        # query = User.query.get(self.testuser.id).is_following(testuser3_id)
+        # print('*****', query)
+        print(str(resp.data))
+
+        self.assertEqual(resp.status_code, 302)
+        # self.assertIn(testuser3_username, str(resp.data))
+        self.assertTrue(User.query.get(
+            self.testuser.id).is_following(testuser3_id))
 
     # def test_stop_following(self):
 
